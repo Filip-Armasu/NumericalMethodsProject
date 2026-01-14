@@ -47,19 +47,11 @@ class MarketModel(mesa.Model):
 
         self.datacollector = DataCollector(
             model_reporters={
-                "Average_Wealth": self.compute_avg_wealth,
-                "Average_Capital": self.compute_avg_capital
+                "Total_Market": self.total_market,
+                "Market_Share": self.market_share
             }
         )
 
-    def compute_avg_wealth(self):
-        total_wealth = sum(consumer.wealth for consumer in self.consumers)
-        return total_wealth / len(self.consumers)
-
-    def compute_avg_capital(self):
-        total_capital = sum(firm.capital for firm in self.firms)
-        return total_capital / len(self.firms)
-    
     def total_market(self):
         total = 0
         for consumer in self.consumers:
