@@ -30,3 +30,52 @@ class Consumer(mesa.Agent):
             self.wealth -= firm.price
             firm.capital += firm.price
 
+class MarketModel(mesa.Model):
+    def __init__(self, N_firms, N_consumers):
+        super().__init__()
+        self.num_firms = N_firms
+        self.num_consumers = N_consumers
+
+        self.firms = [Firm(i, self) for i in range(self.num_firms)]
+        self.consumers = [Consumer(i + self.num_firms, self) for i in range(self.num_consumers)]
+
+        self.schedule = mesa.time.RandomActivation(self)
+        for firm in self.firms:
+            self.schedule.add(firm)
+        for consumer in self.consumers:
+            self.schedule.add(consumer)
+
+        self.datacollector = DataCollector(
+            model_reporters={
+                "Average_Wealth": self.compute_avg_wealth,
+                "Average_Capital": self.compute_avg_capital
+            }
+        )
+
+    def compute_avg_wealth(self):
+        total_wealth = sum(consumer.wealth for consumer in self.consumers)
+        return total_wealth / len(self.consumers)
+
+    def compute_avg_capital(self):
+        total_capital = sum(firm.capital for firm in self.firms)
+        return total_capital / len(self.firms)
+    
+    def total_market(self):
+        total = 0
+        for consumer in self.consumers:
+            for firm in self.firms:
+                if consumer.budget >= firm.price:
+                    total += firm.price
+        return total
+    
+    def market_share(self):
+        share = {}
+        total_sales = self.total_market()
+        for firm in self.firms:
+            firm_sales = sum(firm.price for consumer in self.consumers if consumer.budget >= firm.price)
+            share[firm.unique_id] = firm_sales / total_sales if total_sales > 0 else 0
+        return share
+
+    def step(self):
+        self.datacollector.collect(self)
+        self.schedule.step()
