@@ -18,6 +18,7 @@ class Firm(mesa.Agent):
         self.revenue = 0.0
         self.cumulative_revenue = 0.0
         self.profit = 0.0
+        self.loss_streak = 0
         self.alive = True
 
     def reset_step_stats(self):
@@ -33,6 +34,14 @@ class Firm(mesa.Agent):
     def finalize_profit(self):
         self.profit = self.revenue - (self.units_sold * self.production_cost)- self.model.fixed_cost
         self.capital += self.profit
+        if self.profit < 0:
+            self.loss_streak += 1
+        else:
+            self.loss_streak = 0
+
+        if self.loss_streak >= self.model.penalty_threshold:
+            self.capital -= self.model.shareholder_penalty
+            self.loss_streak = 0  
 
         if self.capital <= 0:
             self.alive = False
@@ -79,13 +88,15 @@ class Consumer(mesa.Agent):
             self.budget += self.model.income_per_step  # Increase budget if cannot afford
 
 class MarketModel(mesa.Model):
-    def __init__(self, N_firms, N_consumers, fixed_cost=20, income_per_step=50):
+    def __init__(self, N_firms, N_consumers, fixed_cost, income_per_step, penalty_threshold, shareholder_penalty):
         super().__init__()
         self.num_firms = N_firms
         self.num_consumers = N_consumers
         self.fixed_cost = fixed_cost
         self.income_per_step = income_per_step
         self.raise_price_threshold = 5
+        self.penalty_threshold = penalty_threshold
+        self.shareholder_penalty = shareholder_penalty
 
         self.firms = [Firm(i, self) for i in range(self.num_firms)]
         self.consumers = [Consumer(i + self.num_firms, self) for i in range(self.num_consumers)]
@@ -124,15 +135,15 @@ class MarketModel(mesa.Model):
             return [0.0 for _ in self.firms]
         return [(firm.cumulative_revenue / total) if firm.alive else 0.0 for firm in self.firms]
     
-    def hhi(self):
+    '''def hhi(self):
         shares = self.market_shares()
-        return sum(share ** 2 for share in shares) * 10000  # HHI scaled by 10,000
+        return sum(share ** 2 for share in shares) * 10000  # HHI scaled by 10,000'''
 
-    def top_share(self):
+    '''def top_share(self):
         shares = self.market_shares()
         if not shares:
             return 0.0
-        return max(shares)
+        return max(shares)'''
 
     def step(self):
         #reset stats for firms

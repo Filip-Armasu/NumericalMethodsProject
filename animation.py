@@ -14,23 +14,29 @@ def animate_market(
     steps=800,
     interval=0.01,
     N_firms=20,
-    N_consumers=200,
-    fixed_cost=70,
-    income_per_step=50,
+    N_consumers=100,
+    fixed_cost=50,
+    income_per_step=60,
+    penalty_threshold=5,
+    shareholder_penalty=2000,
 ):
     model = MarketModel(
         N_firms=N_firms,
         N_consumers=N_consumers,
         fixed_cost=fixed_cost,
         income_per_step=income_per_step,
-    )
+        penalty_threshold=penalty_threshold,
+        shareholder_penalty=shareholder_penalty,
+        )
+        
+    
 
     firm_ids = [f.unique_id for f in model.firms]
 
     plt.ion()
     fig, ax = plt.subplots()
 
-    bars = ax.bar(firm_ids, [0.0] * len(firm_ids))
+    bars = ax.bar(firm_ids, [0.0] * len(firm_ids), color="pink")
     ax.set_ylim(0, 1)
     ax.yaxis.set_major_formatter(PercentFormatter(1.0))
     ax.set_xlabel("Firm ID")
