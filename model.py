@@ -109,8 +109,6 @@ class MarketModel(mesa.Model):
             model_reporters={
                 "Total_Revenue": self.total_revenue,
                 "Active_Firms": self.active_firms,
-                "HHI": self.hhi,
-                "Top_Share": self.top_share,
                 "Shares": self.market_shares,
             },
             agent_reporters={
@@ -134,16 +132,6 @@ class MarketModel(mesa.Model):
         if total <= 0:
             return [0.0 for _ in self.firms]
         return [(firm.cumulative_revenue / total) if firm.alive else 0.0 for firm in self.firms]
-    
-    '''def hhi(self):
-        shares = self.market_shares()
-        return sum(share ** 2 for share in shares) * 10000  # HHI scaled by 10,000'''
-
-    '''def top_share(self):
-        shares = self.market_shares()
-        if not shares:
-            return 0.0
-        return max(shares)'''
 
     def step(self):
         #reset stats for firms

@@ -11,14 +11,14 @@ def shares_all_firms(model):
     return [(f.cumulative_revenue / total) if f.alive else 0.0 for f in model.firms]
 
 def animate_market(
-    steps=800,
+    steps=200,
     interval=0.01,
     N_firms=20,
-    N_consumers=100,
-    fixed_cost=50,
-    income_per_step=60,
-    penalty_threshold=5,
-    shareholder_penalty=2000,
+    N_consumers=60,
+    fixed_cost=90,
+    income_per_step=50,
+    penalty_threshold=1,
+    shareholder_penalty=25,
 ):
     model = MarketModel(
         N_firms=N_firms,
