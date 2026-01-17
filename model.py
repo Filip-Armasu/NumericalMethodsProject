@@ -16,7 +16,6 @@ class Firm(mesa.Agent):
         self.units_sold = 0
         self.revenue = 0.0
         self.profit = 0.0
-        self.loss_streak = 0
         self.alive = True
 
     def reset_step_stats(self):
@@ -31,11 +30,8 @@ class Firm(mesa.Agent):
     def finalize_profit(self):
         self.profit = self.revenue - (self.units_sold * self.production_cost)- self.model.fixed_cost
         self.capital += self.profit
-        if self.profit < 0:
-            self.loss_streak += 1
-        else:
-            self.loss_streak = 0
-        if self.loss_streak >= self.model.exit_after_losses or self.capital <= 0:
+
+        if self.capital <= 0:
             self.alive = False
 
     def step(self):
@@ -80,12 +76,11 @@ class Consumer(mesa.Agent):
             self.budget += self.model.income_per_step  # Increase budget if cannot afford
 
 class MarketModel(mesa.Model):
-    def __init__(self, N_firms, N_consumers, fixed_cost=20, exit_after_losses=15, income_per_step=50):
+    def __init__(self, N_firms, N_consumers, fixed_cost=20, income_per_step=50):
         super().__init__()
         self.num_firms = N_firms
         self.num_consumers = N_consumers
         self.fixed_cost = fixed_cost
-        self.exit_after_losses = exit_after_losses
         self.income_per_step = income_per_step
         self.raise_price_threshold = 5
 
