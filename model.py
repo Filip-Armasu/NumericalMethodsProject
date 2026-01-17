@@ -16,6 +16,7 @@ class Firm(mesa.Agent):
 
         self.units_sold = 0
         self.revenue = 0.0
+        self.cumulative_revenue = 0.0
         self.profit = 0.0
         self.alive = True
 
@@ -27,6 +28,7 @@ class Firm(mesa.Agent):
     def record_sale(self, units: int = 1):
         self.units_sold += units
         self.revenue += units * self.price
+        self.cumulative_revenue += units * self.price
 
     def finalize_profit(self):
         self.profit = self.revenue - (self.units_sold * self.production_cost)- self.model.fixed_cost
@@ -113,11 +115,14 @@ class MarketModel(mesa.Model):
     def total_revenue(self):
         return sum(firm.revenue for firm in self.firms if firm.alive)
     
+    def cumulative_revenue_function(self):
+        return sum(firm.cumulative_revenue for firm in self.firms if firm.alive)
+    
     def market_shares(self):
-        total = self.total_revenue()
+        total = self.cumulative_revenue_function()
         if total <= 0:
-            return [0.0 for _ in self.firms if _.alive]
-        return [firm.revenue / total for firm in self.firms if firm.alive]
+            return [0.0 for _ in self.firms]
+        return [(firm.cumulative_revenue / total) if firm.alive else 0.0 for firm in self.firms]
     
     def hhi(self):
         shares = self.market_shares()
