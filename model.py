@@ -1,5 +1,6 @@
 import numpy as np
 import mesa
+from mesa.time import RandomActivation
 from mesa.datacollection import DataCollector
 import random
 import matplotlib.pyplot as plt
@@ -87,7 +88,7 @@ class MarketModel(mesa.Model):
         self.firms = [Firm(i, self) for i in range(self.num_firms)]
         self.consumers = [Consumer(i + self.num_firms, self) for i in range(self.num_consumers)]
 
-        self.schedule = mesa.time.RandomActivation(self)
+        self.schedule = RandomActivation(self)
         for consumer in self.consumers:
             self.schedule.add(consumer)
 
@@ -97,6 +98,7 @@ class MarketModel(mesa.Model):
                 "Active_Firms": self.active_firms,
                 "HHI": self.hhi,
                 "Top_Share": self.top_share,
+                "Shares": self.market_shares,
             },
             agent_reporters={
                 "capital": lambda a: getattr(a, "capital", None),
@@ -111,18 +113,18 @@ class MarketModel(mesa.Model):
     def total_revenue(self):
         return sum(firm.revenue for firm in self.firms if firm.alive)
     
-    def _shares(self):
+    def market_shares(self):
         total = self.total_revenue()
         if total <= 0:
             return [0.0 for _ in self.firms if _.alive]
         return [firm.revenue / total for firm in self.firms if firm.alive]
     
     def hhi(self):
-        shares = self._shares()
+        shares = self.market_shares()
         return sum(share ** 2 for share in shares) * 10000  # HHI scaled by 10,000
 
     def top_share(self):
-        shares = self._shares()
+        shares = self.market_shares()
         if not shares:
             return 0.0
         return max(shares)
