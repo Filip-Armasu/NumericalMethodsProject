@@ -54,6 +54,7 @@ class Consumer(mesa.Agent):
     def __init__(self, unique_id, model):
         super().__init__(unique_id, model)
         self.wealth = random.randint(1000, 5000)
+        self.preference_modifier = 0
         self.preference = random.choice(["electronics", "clothing", "food"])
         self.budget = random.randint(self.wealth//10, self.wealth)
 
@@ -84,9 +85,9 @@ class Consumer(mesa.Agent):
             firm.record_sale(1)
 
             if self.preference == firm.product_type:
-                self.budget += 250  # Increase budget if preference matches
+                self.budget += self.preference_modifier  # Increase budget if preference matches
             else:
-                self.budget = max(0, self.budget - 100)  # Decrease budget if preference does not match
+                self.budget -= self.preference_modifier  # Decrease budget if preference does not match
         else:
             self.budget += self.model.income_per_step  # Increase budget if cannot afford
 
