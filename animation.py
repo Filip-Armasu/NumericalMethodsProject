@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 from matplotlib.ticker import PercentFormatter
+import random
 from model import MarketModel
 
 
@@ -12,14 +13,14 @@ def shares_all_firms(model): # Calculate market shares for all firms, alive or n
 
 # Simulation parameters
 def animate_market(
-    steps=200,
+    steps=300,
     interval=0.01,
     N_firms=20,
-    N_consumers=60,
-    fixed_cost=90,
+    N_consumers=100,
+    fixed_cost=70,
     income_per_step=50,
-    penalty_threshold=1,
-    shareholder_penalty=25,
+    penalty_threshold=3,
+    shareholder_penalty=50,
 ):
     model = MarketModel(
         N_firms=N_firms,
@@ -29,14 +30,20 @@ def animate_market(
         penalty_threshold=penalty_threshold,
         shareholder_penalty=shareholder_penalty,
         )
-        
     
-
     firm_ids = [f.unique_id for f in model.firms] 
+
+    # Random Colors
+    colors = [(
+    random.random(),
+    random.random(),
+    random.random(),
+    ) for _ in firm_ids]
+
     # Set up the plot
     plt.ion()
     fig, ax = plt.subplots()
-    bars = ax.bar(firm_ids, [0.0] * len(firm_ids), color="pink")
+    bars = ax.bar(firm_ids, [0.0] * len(firm_ids), color=colors) # Making each bar a different color
     ax.set_ylim(0, 1)
     ax.yaxis.set_major_formatter(PercentFormatter(1.0))
     ax.set_xlabel("Firm ID")
@@ -44,6 +51,7 @@ def animate_market(
     title = ax.set_title("Market Shares (Step 0)")
     ax.set_xticks(firm_ids)
 
+    # Showing percentage labels on top of bars
     labels = [
     ax.text(bar.get_x() + bar.get_width() / 2, 0, "",
     ha="center", va="bottom", fontsize=8)
