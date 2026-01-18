@@ -17,10 +17,10 @@ def animate_market(
     interval=0.01,
     N_firms=20,
     N_consumers=100,
-    fixed_cost=70,
-    income_per_step=50,
+    fixed_cost=120,
+    income_per_step=100,
     penalty_threshold=3,
-    shareholder_penalty=50,
+    shareholder_penalty=1500,
 ):
     model = MarketModel(
         N_firms=N_firms,

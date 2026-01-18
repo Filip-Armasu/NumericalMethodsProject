@@ -61,10 +61,12 @@ class Consumer(mesa.Agent):
         affordable_firms = [firm for firm in firms if firm.price <= self.budget] # Filter firms within budget
         if not affordable_firms:
             return None
-        preferred_firms = [firm for firm in affordable_firms if firm.product_type == self.preference] # Filter preferred firms within budget
-        if preferred_firms:
-            return self.random.choice(preferred_firms)
-        return self.random.choice(affordable_firms)
+        preferred_firms = [firm for firm in affordable_firms if firm.product_type == self.preference]
+        candidates = preferred_firms if preferred_firms else affordable_firms
+
+        min_price = min(firm.price for firm in candidates) # Choose the cheapest among candidates
+        cheapest = [firm for firm in candidates if firm.price == min_price]
+        return self.random.choice(cheapest)
 
     def step(self):
         firms = [f for f in self.model.firms if f.alive] # Consider only alive firms
@@ -136,7 +138,7 @@ class MarketModel(mesa.Model):
         return [(firm.cumulative_revenue / total) if firm.alive else 0.0 for firm in self.firms] # Market share based on cumulative revenue
 
     def step(self):
-        # Reset stats for firms
+        #eset stats for firms
         for firm in self.firms:
             firm.reset_step_stats()
 
