@@ -58,3 +58,5 @@ Contribution Statement:
 Armasu Filip - Visualization, Animation
 Paval-Danila Amalia - Model Design, Python Implementation 
 Both - Mathematical Formulation, Debugging, Analysis, Parameter Experimentation
+
+Video with samples: https://www.youtube.com/watch?v=mOEa9dZ4ilA
