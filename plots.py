@@ -28,8 +28,6 @@ def plot_market_share_bar(model_df, model):
 
     # Create figure
     fig, ax = plt.subplots()
-    manager = plt.get_current_fig_manager()
-    manager.full_screen_toggle() # Making it full screen so it looks good on video
     bars = ax.bar(range(len(all_ids)), full_shares, color=colors)
 
     # Labels and title

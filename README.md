@@ -29,7 +29,11 @@ Market Dynamics:
 
 How to Run
 1. Activate the virtual environment
-venv\Scripts\Activate (Alternatively: Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass, then venv\Scripts\activate)
+python3 -m venv venv
+venv\Scripts\Activate
+
+In case of errors use this before activating venv
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 
 2. Install dependencies
 python -m pip install -r requirements.txt
