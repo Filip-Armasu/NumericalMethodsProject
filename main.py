@@ -10,7 +10,9 @@ def run_simulation(steps=300): # Simulation parameters
         N_firms=20,
         N_consumers=200, 
         fixed_cost=20,  
-        income_per_step=50
+        income_per_step=50,
+        penalty_threshold=3,
+        shareholder_penalty=50,
     )
 
     for _ in range(steps): 

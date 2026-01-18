@@ -43,6 +43,8 @@ def animate_market(
     # Set up the plot
     plt.ion()
     fig, ax = plt.subplots()
+    manager = plt.get_current_fig_manager()
+    manager.full_screen_toggle() # Making it full screen so it looks good on video
     bars = ax.bar(firm_ids, [0.0] * len(firm_ids), color=colors) # Making each bar a different color
     ax.set_ylim(0, 1)
     ax.yaxis.set_major_formatter(PercentFormatter(1.0))
