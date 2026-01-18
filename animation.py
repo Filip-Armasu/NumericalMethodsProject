@@ -12,33 +12,21 @@ def shares_all_firms(model): # Calculate market shares for all firms, alive or n
     return [(f.cumulative_revenue / total) if f.alive else 0.0 for f in model.firms] 
 
 # Simulation parameters
-def animate_market(
-    steps=100,
-    interval=0.01,
-    N_firms=15,
-    N_consumers=200, 
-    fixed_cost=50,  
-    income_per_step=75,
-    penalty_threshold=8,
-    shareholder_penalty=1000,
-    bonus_threshold=5,
-    investor_bonus=1500,
-    brand_gain=0.001,
-    brand_decay=0.03,
-    brand_weight=0.03,   
-):
+def animate_market(steps=400, interval=0.0001,): # N8umber of steps and interval between frames
     model = MarketModel(
-        N_firms=N_firms,
-        N_consumers=N_consumers,
-        fixed_cost=fixed_cost,
-        income_per_step=income_per_step,
-        penalty_threshold=penalty_threshold,
-        shareholder_penalty=shareholder_penalty,
-        bonus_threshold=bonus_threshold,
-        investor_bonus=investor_bonus,
-        brand_gain=brand_gain,
-        brand_decay=brand_decay,
-        brand_weight=brand_weight,
+        N_firms=20, # Number of firms in the market
+        N_consumers=100,  # Number of consumers in the market
+        fixed_cost=55,  # Fixed cost per step for each firm
+        income_per_step=70, # Income each consumer provides per step
+        penalty_threshold=6, # Loss streak required for penalty
+        shareholder_penalty=5000, # Penalty for low performance
+        bonus_threshold=2, # Win streak required for bonus
+        investor_bonus=700, # Bonus for high performance
+        brand_gain=0.005, # How much brand value increases per sale
+        brand_decay=0.01, # How much brand value decays each step
+        brand_weight=0.005, # How impactful the brand value is
+        start_boost=100, # How much starting sales impact the simulation long term
+        max_steps=steps
         )
     
     firm_ids = [f.unique_id for f in model.firms] 

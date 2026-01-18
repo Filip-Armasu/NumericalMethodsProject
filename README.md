@@ -44,10 +44,10 @@ In main.py or the animation.py, you can adjust:
 -Number of consumers
 -Fixed production costs
 -Income per step
--Shareholder penalty size
--Loss streak threshold
--Investor bonus
--Win streak threshold
+-Shareholder penalty and Investor bonus
+-Loss streak threshold and Win streak threshold
+-Brand Gain, Decay and Weight
+-Start Boost
 
 
 Contribution Statement:

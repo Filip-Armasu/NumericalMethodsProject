@@ -17,7 +17,7 @@ class Firm(mesa.Agent):
         # stats to track
         self.units_sold = 0
         self.revenue = 0.0
-        self.cumulative_revenue = 10 # This is so each firm starts with a tiny market share
+        self.cumulative_revenue = model.start_boost # This is so each firm starts with a tiny market share
         self.profit = 0.0
         self.loss_streak = 0
         self.win_streak = 0
@@ -45,11 +45,11 @@ class Firm(mesa.Agent):
             self.win_streak += 1
 
         if self.loss_streak >= self.model.penalty_threshold: # Apply shareholder penalty
-            self.capital -= self.model.shareholder_penalty
+            self.profit -= self.model.shareholder_penalty
             self.loss_streak = 0  
 
         if self.win_streak >= self.model.bonus_threshold: # Apply investor bonus
-            self.capital += self.model.investor_bonus
+            self.profit += self.model.investor_bonus
             self.win_streak = 0
         
         if self.capital <= 0: # Firms exit when they run out of capital
@@ -69,14 +69,22 @@ class Consumer(mesa.Agent):
         if not affordable_firms:
             return None
         
-        if self.random.random() < 0.1: # 20% chance to choose randomly among affordable firms
-            return self.random.choice(affordable_firms)
+        brand_active = self.model.current_step >= self.model.max_steps / 4 # Brand effect starts after a quarter of the simulation
 
-        def score(firm):
-            return -firm.price + self.model.brand_weight * firm.brand
+        progress = self.model.current_step / self.model.max_steps
+        effective_brand_weight = self.model.brand_weight * max(0, 2 * progress - 1) # Brand weight ramps up over the course of the simulation
+
+        def score(firm): # Brand calculation
+            if brand_active:
+                return -firm.price + effective_brand_weight * firm.brand
+            else:
+                return -firm.price
 
         best_score = max(score(f) for f in affordable_firms)
         best_firms = [f for f in affordable_firms if score(f) == best_score]
+
+        if self.random.random() < 0.2: #chance to choose randomly among affordable firms
+            return self.random.choice(affordable_firms)
 
         return self.random.choice(best_firms)
 
@@ -98,7 +106,7 @@ class Consumer(mesa.Agent):
             self.budget += self.model.income_per_step  # Increase budget if cannot afford
 
 class MarketModel(mesa.Model):
-    def __init__(self, N_firms, N_consumers, fixed_cost, income_per_step, penalty_threshold, shareholder_penalty, bonus_threshold, investor_bonus, brand_gain, brand_decay, brand_weight):
+    def __init__(self, N_firms, N_consumers, fixed_cost, income_per_step, penalty_threshold, shareholder_penalty, bonus_threshold, investor_bonus, brand_gain, brand_decay, brand_weight, max_steps, start_boost):
         super().__init__()
         self.num_firms = N_firms
         self.num_consumers = N_consumers
@@ -111,16 +119,19 @@ class MarketModel(mesa.Model):
         self.brand_gain = brand_gain
         self.brand_decay = brand_decay
         self.brand_weight = brand_weight
+        self.max_steps = max_steps
+        self.start_boost = start_boost
+        self.current_step = 0
+
 
         self.firms = [Firm(i, self) for i in range(self.num_firms)] # Create firms
         self.consumers = [Consumer(i + self.num_firms, self) for i in range(self.num_consumers)] # Create consumers
 
-         # Add agents to the schedule
-        self.schedule = RandomActivation(self)
+        self.schedule = RandomActivation(self) # Add agents to the schedule
         for consumer in self.consumers:
             self.schedule.add(consumer)
 
-        self.datacollector = DataCollector(
+        self.datacollector = DataCollector( # Data collector to track model and agent stats
             model_reporters={
                 "Total_Revenue": self.total_revenue,
                 "Active_Firms": self.active_firms,
@@ -131,7 +142,7 @@ class MarketModel(mesa.Model):
                 "price": lambda a: getattr(a, "price", None),
                 "alive": lambda a: getattr(a, "alive", None),
             }
-        ) # Data collector to track model and agent stats
+        )
 
     def active_firms(self):
         return sum(1 for firm in self.firms if firm.alive) # Count of active firms
@@ -149,12 +160,13 @@ class MarketModel(mesa.Model):
         return [(firm.cumulative_revenue / total) if firm.alive else 0.0 for firm in self.firms] # Market share based on cumulative revenue
 
     def step(self):
-        # Reset stats for firms
-        for firm in self.firms:
+
+        self.current_step += 1 # Increment step count
+
+        for firm in self.firms: # Reset stats for firms
             firm.reset_step_stats()
 
-        # Step all agents
-        self.schedule.step()
+        self.schedule.step() # Step all agents
 
         for firm in self.firms:
             if firm.alive:
@@ -162,19 +174,16 @@ class MarketModel(mesa.Model):
                 if firm.brand < 1.0:
                     firm.brand = 1.0  # Ensure brand does not go below 1.0
 
-        # Adjust prices based on sales
-        for firm in self.firms:
+        for firm in self.firms: # Adjust prices based on sales
             if not firm.alive:
                 continue
 
             if firm.units_sold == 0:
                 firm.price = max(firm.production_cost + 1, firm.price - 1)  # Decrease price if no sales
 
-        # Finalize profits and check for exit
-        for firm in self.firms:
+        for firm in self.firms: # Finalize profits and check for exit
             if firm.alive:
                 firm.finalize_profit()
 
-        #Collect data
-        self.datacollector.collect(self)
+        self.datacollector.collect(self) #Collect data
         
