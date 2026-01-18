@@ -7,14 +7,14 @@ print("Starting Market Simulation...")
 
 def run_simulation(steps=300): # Simulation parameters
     m = MarketModel(
-        N_firms=20,
-        N_consumers=200, 
-        fixed_cost=20,  
-        income_per_step=50,
-        penalty_threshold=3,
-        shareholder_penalty=50,
-        bonus_threshold=5,
-        investor_bonus=50,
+        N_firms=15,
+        N_consumers=100, 
+        fixed_cost=90,  
+        income_per_step=60,
+        penalty_threshold=5,
+        shareholder_penalty=3500,
+        bonus_threshold=7,
+        investor_bonus=10000,
         preference_modifier=0,
     )
 

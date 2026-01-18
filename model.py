@@ -105,7 +105,7 @@ class MarketModel(mesa.Model):
         self.num_consumers = N_consumers
         self.fixed_cost = fixed_cost
         self.income_per_step = income_per_step
-        self.raise_price_threshold = 5
+        self.raise_price_threshold = 30
         self.penalty_threshold = penalty_threshold
         self.shareholder_penalty = shareholder_penalty
         self.bonus_threshold = bonus_threshold
@@ -166,9 +166,7 @@ class MarketModel(mesa.Model):
             elif firm.units_sold > self.raise_price_threshold:
                 firm.price += 1
             # Adjust price based on capital
-            if firm.capital > 15000:
-                firm.price += 1
-            elif firm.capital < 7000:
+            if firm.capital < 7000:
                 firm.price = max(firm.production_cost + 1, firm.price - 1)
 
         # Finalize profits and check for exit
