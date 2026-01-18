@@ -15,7 +15,6 @@ def run_simulation(steps=300): # Simulation parameters
         shareholder_penalty=3500,
         bonus_threshold=7,
         investor_bonus=10000,
-        preference_modifier=0,
     )
 
     for _ in range(steps): 

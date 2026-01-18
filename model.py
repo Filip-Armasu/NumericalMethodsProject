@@ -9,15 +9,14 @@ import pandas as pd
 class Firm(mesa.Agent):
     def __init__(self, unique_id, model):
         super().__init__(unique_id, model)
-        self.product_type = random.choice(["electronics", "clothing", "food"])
-        self.capital = random.randint(5000, 10000)
+        self.capital = random.randint(10000, 15000)
         self.production_cost = random.randint(5, 20)
         self.price = self.production_cost + random.randint(1, 10)
 
         # stats to track
         self.units_sold = 0
         self.revenue = 0.0
-        self.cumulative_revenue = 0.0
+        self.cumulative_revenue = 10 # This is so each firm starts with a tiny market share
         self.profit = 0.0
         self.loss_streak = 0
         self.win_streak = 0
@@ -61,19 +60,17 @@ class Consumer(mesa.Agent):
     def __init__(self, unique_id, model):
         super().__init__(unique_id, model)
         self.wealth = random.randint(1000, 5000)
-        self.preference = random.choice(["electronics", "clothing", "food"])
-        self.preference_modifier = model.preference_modifier
         self.budget = random.randint(self.wealth//10, self.wealth)
         
     def choose_firm(self, firms):
         affordable_firms = [firm for firm in firms if firm.price <= self.budget] # Filter firms within budget
         if not affordable_firms:
             return None
-        preferred_firms = [firm for firm in affordable_firms if firm.product_type == self.preference]
-        candidates = preferred_firms if preferred_firms else affordable_firms
+        if self.random.random() < 0.1: # 20% chance to choose randomly among affordable firms
+            return self.random.choice(affordable_firms)
 
-        min_price = min(firm.price for firm in candidates) # Choose the cheapest among candidates
-        cheapest = [firm for firm in candidates if firm.price == min_price]
+        min_price = min(firm.price for firm in affordable_firms) # Choose the cheapest among candidates
+        cheapest = [firm for firm in affordable_firms if firm.price == min_price]
         return self.random.choice(cheapest)
 
     def step(self):
@@ -90,27 +87,20 @@ class Consumer(mesa.Agent):
             self.budget -= firm.price
             self.wealth -= firm.price
             firm.record_sale(1)
-
-            if self.preference == firm.product_type:
-                self.budget += self.preference_modifier  # Increase budget if preference matches
-            else:
-                self.budget -= self.preference_modifier  # Decrease budget if preference does not match
         else:
             self.budget += self.model.income_per_step  # Increase budget if cannot afford
 
 class MarketModel(mesa.Model):
-    def __init__(self, N_firms, N_consumers, fixed_cost, income_per_step, penalty_threshold, shareholder_penalty, bonus_threshold, investor_bonus, preference_modifier):
+    def __init__(self, N_firms, N_consumers, fixed_cost, income_per_step, penalty_threshold, shareholder_penalty, bonus_threshold, investor_bonus):
         super().__init__()
         self.num_firms = N_firms
         self.num_consumers = N_consumers
         self.fixed_cost = fixed_cost
         self.income_per_step = income_per_step
-        self.raise_price_threshold = 30
         self.penalty_threshold = penalty_threshold
         self.shareholder_penalty = shareholder_penalty
         self.bonus_threshold = bonus_threshold
         self.investor_bonus = investor_bonus
-        self.preference_modifier = preference_modifier
 
         self.firms = [Firm(i, self) for i in range(self.num_firms)] # Create firms
         self.consumers = [Consumer(i + self.num_firms, self) for i in range(self.num_consumers)] # Create consumers
@@ -162,12 +152,7 @@ class MarketModel(mesa.Model):
                 continue
 
             if firm.units_sold == 0:
-                firm.price = max(firm.production_cost + 1, firm.price - 1)
-            elif firm.units_sold > self.raise_price_threshold:
-                firm.price += 1
-            # Adjust price based on capital
-            if firm.capital < 7000:
-                firm.price = max(firm.production_cost + 1, firm.price - 1)
+                firm.price = max(firm.production_cost + 1, firm.price - 1)  # Decrease price if no sales
 
         # Finalize profits and check for exit
         for firm in self.firms:

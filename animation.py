@@ -13,17 +13,16 @@ def shares_all_firms(model): # Calculate market shares for all firms, alive or n
 
 # Simulation parameters
 def animate_market(
-    steps=100,
-    interval=0.05,
+    steps=200,
+    interval=0.001,
     N_firms=15,
     N_consumers=90, 
-    fixed_cost=115,  
-    income_per_step=155,
-    penalty_threshold=3,
-    shareholder_penalty=2500,
-    bonus_threshold=3,
-    investor_bonus=5000,
-    preference_modifier=0,
+    fixed_cost=75,  
+    income_per_step=55,
+    penalty_threshold=8,
+    shareholder_penalty=4000,
+    bonus_threshold=4,
+    investor_bonus=2500,
 ):
     model = MarketModel(
         N_firms=N_firms,
@@ -34,7 +33,6 @@ def animate_market(
         shareholder_penalty=shareholder_penalty,
         bonus_threshold=bonus_threshold,
         investor_bonus=investor_bonus,
-        preference_modifier=preference_modifier,
         )
     
     firm_ids = [f.unique_id for f in model.firms] 

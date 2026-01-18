@@ -15,7 +15,7 @@ Agents:
 -Can be penalized after repeated losses (shareholder penalty)
 
 2. Consumers
--Have a budget and product preference
+-Have a budget
 -Choose among affordable firms
 -Purchase goods each simulation step
 
@@ -46,6 +46,8 @@ In main.py or the animation.py, you can adjust:
 -Income per step
 -Shareholder penalty size
 -Loss streak threshold
+-Investor bonus
+-Win streak threshold
 
 
 Contribution Statement:
