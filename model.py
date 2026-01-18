@@ -12,6 +12,7 @@ class Firm(mesa.Agent):
         self.capital = random.randint(10000, 15000)
         self.production_cost = random.randint(5, 20)
         self.price = self.production_cost + random.randint(1, 10)
+        self.brand = 1.0
 
         # stats to track
         self.units_sold = 0
@@ -31,6 +32,7 @@ class Firm(mesa.Agent):
         self.units_sold += units
         self.revenue += units * self.price # Revenue for the current step
         self.cumulative_revenue += units * self.price # Total revenue over time
+        self.brand += units * self.model.brand_gain  # Increase brand value with sales
 
     def finalize_profit(self):
         self.profit = self.revenue - (self.units_sold * self.production_cost) - self.model.fixed_cost # Total profit for the step
@@ -66,12 +68,17 @@ class Consumer(mesa.Agent):
         affordable_firms = [firm for firm in firms if firm.price <= self.budget] # Filter firms within budget
         if not affordable_firms:
             return None
+        
         if self.random.random() < 0.1: # 20% chance to choose randomly among affordable firms
             return self.random.choice(affordable_firms)
 
-        min_price = min(firm.price for firm in affordable_firms) # Choose the cheapest among candidates
-        cheapest = [firm for firm in affordable_firms if firm.price == min_price]
-        return self.random.choice(cheapest)
+        def score(firm):
+            return -firm.price + self.model.brand_weight * firm.brand
+
+        best_score = max(score(f) for f in affordable_firms)
+        best_firms = [f for f in affordable_firms if score(f) == best_score]
+
+        return self.random.choice(best_firms)
 
     def step(self):
         firms = [f for f in self.model.firms if f.alive] # Consider only alive firms
@@ -91,7 +98,7 @@ class Consumer(mesa.Agent):
             self.budget += self.model.income_per_step  # Increase budget if cannot afford
 
 class MarketModel(mesa.Model):
-    def __init__(self, N_firms, N_consumers, fixed_cost, income_per_step, penalty_threshold, shareholder_penalty, bonus_threshold, investor_bonus):
+    def __init__(self, N_firms, N_consumers, fixed_cost, income_per_step, penalty_threshold, shareholder_penalty, bonus_threshold, investor_bonus, brand_gain, brand_decay, brand_weight):
         super().__init__()
         self.num_firms = N_firms
         self.num_consumers = N_consumers
@@ -101,6 +108,9 @@ class MarketModel(mesa.Model):
         self.shareholder_penalty = shareholder_penalty
         self.bonus_threshold = bonus_threshold
         self.investor_bonus = investor_bonus
+        self.brand_gain = brand_gain
+        self.brand_decay = brand_decay
+        self.brand_weight = brand_weight
 
         self.firms = [Firm(i, self) for i in range(self.num_firms)] # Create firms
         self.consumers = [Consumer(i + self.num_firms, self) for i in range(self.num_consumers)] # Create consumers
@@ -139,12 +149,18 @@ class MarketModel(mesa.Model):
         return [(firm.cumulative_revenue / total) if firm.alive else 0.0 for firm in self.firms] # Market share based on cumulative revenue
 
     def step(self):
-        #eset stats for firms
+        # Reset stats for firms
         for firm in self.firms:
             firm.reset_step_stats()
 
         # Step all agents
         self.schedule.step()
+
+        for firm in self.firms:
+            if firm.alive:
+                firm.brand *= (1 - self.brand_decay)  # Decay brand value over time 
+                if firm.brand < 1.0:
+                    firm.brand = 1.0  # Ensure brand does not go below 1.0
 
         # Adjust prices based on sales
         for firm in self.firms:
