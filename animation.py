@@ -21,6 +21,9 @@ def animate_market(
     income_per_step=100,
     penalty_threshold=3,
     shareholder_penalty=1500,
+    bonus_threshold=5,
+    investor_bonus=50,
+    preference_modifier=0,
 ):
     model = MarketModel(
         N_firms=N_firms,
@@ -29,6 +32,9 @@ def animate_market(
         income_per_step=income_per_step,
         penalty_threshold=penalty_threshold,
         shareholder_penalty=shareholder_penalty,
+        bonus_threshold=bonus_threshold,
+        investor_bonus=investor_bonus,
+        preference_modifier=preference_modifier,
         )
     
     firm_ids = [f.unique_id for f in model.firms] 

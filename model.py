@@ -20,6 +20,7 @@ class Firm(mesa.Agent):
         self.cumulative_revenue = 0.0
         self.profit = 0.0
         self.loss_streak = 0
+        self.win_streak = 0
         self.alive = True
 
     def reset_step_stats(self): # Reset stats at the beginning of each step
@@ -35,15 +36,21 @@ class Firm(mesa.Agent):
     def finalize_profit(self):
         self.profit = self.revenue - (self.units_sold * self.production_cost) - self.model.fixed_cost # Total profit for the step
         self.capital += self.profit
-        if self.profit < 0: # Track loss streak
+        if self.profit < 0: # Track loss and win streaks
             self.loss_streak += 1
+            self.win_streak = 0
         else:
             self.loss_streak = 0
+            self.win_streak += 1
 
         if self.loss_streak >= self.model.penalty_threshold: # Apply shareholder penalty
             self.capital -= self.model.shareholder_penalty
             self.loss_streak = 0  
 
+        if self.win_streak >= self.model.bonus_threshold: # Apply investor bonus
+            self.capital += self.model.investor_bonus
+            self.win_streak = 0
+        
         if self.capital <= 0: # Firms exit when they run out of capital
             self.alive = False
 
@@ -54,10 +61,10 @@ class Consumer(mesa.Agent):
     def __init__(self, unique_id, model):
         super().__init__(unique_id, model)
         self.wealth = random.randint(1000, 5000)
-        self.preference_modifier = 0
         self.preference = random.choice(["electronics", "clothing", "food"])
+        self.preference_modifier = model.preference_modifier
         self.budget = random.randint(self.wealth//10, self.wealth)
-
+        
     def choose_firm(self, firms):
         affordable_firms = [firm for firm in firms if firm.price <= self.budget] # Filter firms within budget
         if not affordable_firms:
@@ -92,7 +99,7 @@ class Consumer(mesa.Agent):
             self.budget += self.model.income_per_step  # Increase budget if cannot afford
 
 class MarketModel(mesa.Model):
-    def __init__(self, N_firms, N_consumers, fixed_cost, income_per_step, penalty_threshold, shareholder_penalty):
+    def __init__(self, N_firms, N_consumers, fixed_cost, income_per_step, penalty_threshold, shareholder_penalty, bonus_threshold, investor_bonus, preference_modifier):
         super().__init__()
         self.num_firms = N_firms
         self.num_consumers = N_consumers
@@ -101,6 +108,9 @@ class MarketModel(mesa.Model):
         self.raise_price_threshold = 5
         self.penalty_threshold = penalty_threshold
         self.shareholder_penalty = shareholder_penalty
+        self.bonus_threshold = bonus_threshold
+        self.investor_bonus = investor_bonus
+        self.preference_modifier = preference_modifier
 
         self.firms = [Firm(i, self) for i in range(self.num_firms)] # Create firms
         self.consumers = [Consumer(i + self.num_firms, self) for i in range(self.num_consumers)] # Create consumers
