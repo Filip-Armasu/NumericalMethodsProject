@@ -3,13 +3,14 @@ from matplotlib.ticker import PercentFormatter
 from model import MarketModel
 
 
-def shares_all_firms(model):
+def shares_all_firms(model): # Calculate market shares for all firms, alive or not
     total = sum(f.cumulative_revenue for f in model.firms if f.alive)
     if total <= 0:
         return [0.0 for _ in model.firms]
 
-    return [(f.cumulative_revenue / total) if f.alive else 0.0 for f in model.firms]
+    return [(f.cumulative_revenue / total) if f.alive else 0.0 for f in model.firms] 
 
+# Simulation parameters
 def animate_market(
     steps=200,
     interval=0.01,
@@ -31,11 +32,10 @@ def animate_market(
         
     
 
-    firm_ids = [f.unique_id for f in model.firms]
-
+    firm_ids = [f.unique_id for f in model.firms] 
+    # Set up the plot
     plt.ion()
     fig, ax = plt.subplots()
-
     bars = ax.bar(firm_ids, [0.0] * len(firm_ids), color="pink")
     ax.set_ylim(0, 1)
     ax.yaxis.set_major_formatter(PercentFormatter(1.0))
@@ -49,7 +49,7 @@ def animate_market(
     ha="center", va="bottom", fontsize=8)
     for bar in bars]
     
-
+    # Animation loop
     for t in range(steps):
         model.step()
 
@@ -75,5 +75,5 @@ def animate_market(
     plt.show() 
 
 
-if __name__ == "__main__":
+if __name__ == "__main__": 
     animate_market()
